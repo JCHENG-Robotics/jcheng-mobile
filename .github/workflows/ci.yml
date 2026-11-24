@@ -30,6 +30,13 @@ jobs:
         shell: bash
         run: python3 -m pytest -q tests
 
+      - name: Documentation set
+        shell: bash
+        run: |
+          for f in README.md README.zh-CN.md ROADMAP.md CHANGELOG.md ACCEPTANCE.md LICENSE-REVIEW.md; do
+            test -f "$f" || { echo "missing $f"; exit 1; }
+          done
+
   ros-build:
     name: ros build (humble)
     runs-on: ubuntu-latest
