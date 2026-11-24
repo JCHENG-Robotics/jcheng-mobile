@@ -1,0 +1,36 @@
+# RTAB-Map ICP laser odometry (rtabmap_odom/icp_odometry) for jcheng-mobile.
+#
+# Replaces wheel odometry on the base (no encoders, no IMU): the 2D LSLIDAR M10
+# scan (10 Hz, 0.36 deg, ~1000 points/scan) is the only usable odometry source.
+# The node publishes /odom and the odom -> base_link TF (publish_tf: true).
+# It consumes /scan only; it does not open any device.
+#
+# STATUS: DRAFT. Parameter names/values must be checked against the installed
+# rtabmap_odom version (0.22.x/0.23.x) with:
+#   ros2 param list /icp_odometry
+# and a real scan before any navigation claim.
+icp_odometry:
+  ros__parameters:
+    frame_id: base_link
+    odom_frame_id: odom
+    publish_tf: true
+    wait_for_transform: 0.2
+    approx_sync: true
+    topic_queue_size: 10
+    sync_queue_size: 10
+
+    # The ICP odometry node consumes the remapped `scan` topic. Keep this
+    # explicit; verify it is declared by the installed build.
+    subscribe_scan: true
+
+    # RTAB-Map parameter strings (not ROS typed params).
+    # Planar motion: constrain roll/pitch so the 2D scan cannot tilt the pose.
+    Icp/Force4DoF: "true"
+    # 2D scan: point-to-point is the safe default; point-to-plane needs a
+    # surface normal estimate and is not appropriate for a single scan line.
+    Icp/PointToPlane: "false"
+    Icp/MaxCorrespondenceDistance: "0.10"
+    Icp/MaxTranslation: "0.50"
+    Icp/MaxRotation: "0.50"
+    Icp/VoxelSize: "0.05"
+    OdomF2M/MaxSize: "2000"

@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<!--
+  PROVISIONAL mobile-base model for jcheng-mobile.
+
+  Scope: chassis, four mecanum wheels and the LiDAR frame only. The arm chain
+  is intentionally out of scope; the mobile capability must not depend on the
+  frozen manipulation repository's runtime model. Use this file for RViz,
+  collision checks and a future simulator.
+
+  Not hardware-validated:
+  - wheelbase / track / wheel diameter are vendor controller defaults;
+  - chassis length/width/height, arm-mount height and the LiDAR pose are
+    placeholders. Measure them before planning or navigating.
+
+  Nav2 uses base_link as robot_base_frame. base_link is the arm-mount frame;
+  the chassis hangs below it.
+-->
+<robot name="jcheng_mobile" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Vendor controller defaults; verify with a tape measure. -->
+  <xacro:arg name="wheelbase" default="0.195"/>
+  <xacro:arg name="track_width" default="0.22"/>
+  <xacro:arg name="wheel_diameter" default="0.0965"/>
+  <xacro:arg name="wheel_width" default="0.04"/>
+
+  <!-- PROVISIONAL: measure these. -->
+  <xacro:arg name="chassis_length" default="0.26"/>
+  <xacro:arg name="chassis_width" default="0.22"/>
+  <xacro:arg name="chassis_height" default="0.10"/>
+  <xacro:arg name="arm_mount_height" default="0.12"/>
+  <xacro:arg name="chassis_dz" default="-0.05"/>
+  <xacro:arg name="laser_x" default="0.12"/>
+  <xacro:arg name="laser_y" default="0.0"/>
+  <xacro:arg name="laser_z" default="0.03"/>
+  <xacro:arg name="laser_yaw" default="0.0"/>
+
+  <xacro:property name="wheelbase" value="${float('$(arg wheelbase)')}"/>
+  <xacro:property name="track_width" value="${float('$(arg track_width)')}"/>
+  <xacro:property name="wheel_radius" value="${float('$(arg wheel_diameter)') / 2.0}"/>
+  <xacro:property name="wheel_width" value="${float('$(arg wheel_width)')}"/>
+  <xacro:property name="chassis_length" value="${float('$(arg chassis_length)')}"/>
+  <xacro:property name="chassis_width" value="${float('$(arg chassis_width)')}"/>
+  <xacro:property name="chassis_height" value="${float('$(arg chassis_height)')}"/>
+  <xacro:property name="arm_mount_height" value="${float('$(arg arm_mount_height)')}"/>
+  <xacro:property name="chassis_dz" value="${float('$(arg chassis_dz)')}"/>
+  <xacro:property name="pi_const" value="3.141592653589793"/>
+  <xacro:property name="wheel_z"
+                  value="${wheel_radius - arm_mount_height - chassis_dz}"/>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.05 0.05 0.01"/>
+      </geometry>
+      <material name="mount_grey">
+        <color rgba="0.55 0.55 0.55 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.05 0.05 0.01"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.00001" ixy="0.0" ixz="0.0"
+               iyy="0.00001" iyz="0.0" izz="0.00002"/>
+    </inertial>
+  </link>
+
+  <link name="chassis_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+      <material name="chassis_grey">
+        <color rgba="0.30 0.30 0.30 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.006" ixy="0.0" ixz="0.0"
+               iyy="0.008" iyz="0.0" izz="0.010"/>
+    </inertial>
+  </link>
+
+  <joint name="chassis_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="chassis_link"/>
+    <origin xyz="0 0 ${chassis_dz}" rpy="0 0 0"/>
+  </joint>
+
+  <xacro:macro name="wheel" params="name x y">
+    <link name="${name}_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="${pi_const / 2.0} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+        <material name="wheel_black">
+          <color rgba="0.05 0.05 0.05 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="${pi_const / 2.0} 0 0"/>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="${pi_const / 2.0} 0 0"/>
+        <mass value="0.05"/>
+        <inertia ixx="0.00001" ixy="0.0" ixz="0.0"
+                 iyy="0.00003" iyz="0.0" izz="0.00001"/>
+      </inertial>
+    </link>
+    <joint name="${name}_joint" type="continuous">
+      <parent link="chassis_link"/>
+      <child link="${name}_link"/>
+      <origin xyz="${x} ${y} ${wheel_z}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:wheel name="front_left_wheel"
+               x="${wheelbase / 2.0}" y="${track_width / 2.0}"/>
+  <xacro:wheel name="front_right_wheel"
+               x="${wheelbase / 2.0}" y="${-track_width / 2.0}"/>
+  <xacro:wheel name="rear_left_wheel"
+               x="${-wheelbase / 2.0}" y="${track_width / 2.0}"/>
+  <xacro:wheel name="rear_right_wheel"
+               x="${-wheelbase / 2.0}" y="${-track_width / 2.0}"/>
+
+  <link name="laser_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <!-- LSLIDAR M10: ~80 mm diameter, 39 mm tall; scan plane at origin. -->
+        <cylinder radius="0.04" length="0.039"/>
+      </geometry>
+      <material name="laser_blue">
+        <color rgba="0.10 0.20 0.80 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.04" length="0.039"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.02"/>
+      <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+               iyy="0.000001" iyz="0.0" izz="0.000001"/>
+    </inertial>
+  </link>
+
+  <joint name="laser_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="laser_link"/>
+    <origin xyz="$(arg laser_x) $(arg laser_y) $(arg laser_z)"
+            rpy="0 0 $(arg laser_yaw)"/>
+  </joint>
+
+</robot>

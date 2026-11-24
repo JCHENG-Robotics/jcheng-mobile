@@ -1,0 +1,28 @@
+# Capability manifest for the organization's admission check.
+# jcheng-mobile is an L3 capability: it consumes /scan and publishes real
+# laser odometry, map and chassis intent. It never opens a device, drives a
+# motor, or fabricates odometry.
+schema_version: 1
+name: jcheng-mobile
+version: 0.1.0
+contract:
+  interfaces: ">=0.1,<0.2"
+  contract_hash: "sha256:0b8d72ced7f54d444d6851d8b99a51a78e2bed3f687324f51a15f76557f24b42"
+  system_api: ">=0.1,<0.2"
+safety:
+  class: motion_source
+  scopes: [base]
+  requires_lease: true
+  max_rate_hz: 20
+  deadman_ms: 500
+hardware_access: none
+runtime:
+  ros_domains: [42]
+  publishes:
+    - /cmd_vel
+    - /odom
+    - /map
+    - /tf
+  subscribes:
+    - /scan
+    - /tf
