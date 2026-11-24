@@ -1,9 +1,12 @@
 # jcheng-mobile
 
+[简体中文](README.zh-CN.md) | **English**
+
 > **STATUS: EXPERIMENTAL / NOT HARDWARE-VALIDATED.** This is the L3 mobile-base
 > capability for the JCHENG ecosystem. It consumes a 2D LiDAR scan, estimates
 > real laser odometry, maps, and publishes chassis intent. It does **not** open
 > devices, drive motors, or fabricate odometry.
+> English canonical; see [README.zh-CN.md](README.zh-CN.md) for the Chinese translation.
 
 ## Scope and boundary
 
@@ -90,9 +93,22 @@ python3 -m pytest -q tests
   placeholders. No `/scan`, `/odom`, `/map` or motion claim is currently
   evidence-backed.
 
+Full report: [ACCEPTANCE.md](ACCEPTANCE.md).
+
 ## Related
 
 - `JCHENG-Robotics/jcheng-interfaces` — contract schema and hash.
 - `JCHENG-Robotics/jcheng-system` — safety, authority, motion, hardware bridge.
 - `JCHENG-Robotics/jcheng-ops` — operations and watchdogs.
 - `docs/INTEGRATION.md` — discovery, lease and failure semantics.
+
+## License
+
+This repository contains an MIT `LICENSE` added at initialization. That
+predates the organization license-review policy: the other new repositories
+(`jcheng-interfaces`, `jcheng-system`, `jcheng-perception`, `jcheng-ops`,
+`.github`) have no `LICENSE`, and the review is pending. The file is **retained
+pending review**; see [LICENSE-REVIEW.md](LICENSE-REVIEW.md). The inconsistency
+is recorded in
+[`JCHENG-Robotics/.github/ACCEPTANCE.md`](https://github.com/JCHENG-Robotics/.github/blob/main/ACCEPTANCE.md).
+Do not treat this file as the organization-wide licensing decision.
