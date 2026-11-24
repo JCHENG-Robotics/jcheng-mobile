@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>jcheng_mobile_bringup</name>
+  <version>0.1.0</version>
+  <description>
+    Contract-compliant mobile-base bringup: consumes /scan, publishes real
+    laser odometry, map and /cmd_vel chassis intent. No hardware access, no
+    motor driver and no fake odometry.
+  </description>
+  <maintainer email="maintainer@example.invalid">ubuntu</maintainer>
+  <license>MIT</license>
+
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <!-- Runtime stack; the robot/system layer provides /scan and consumes the
+       chassis intent. These are not required to build this package. -->
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>nav2_mppi_controller</exec_depend>
+  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>rtabmap_odom</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
