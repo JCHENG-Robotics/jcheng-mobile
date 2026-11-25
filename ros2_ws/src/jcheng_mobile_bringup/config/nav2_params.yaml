@@ -192,8 +192,8 @@ local_costmap:
       robot_base_frame: base_link
       use_sim_time: false
       rolling_window: true
-      width: 3.0
-      height: 3.0
+      width: 3
+      height: 3
       resolution: 0.05
       # PROVISIONAL footprint in base_link (arm-mount) frame; measure the
       # real chassis corners. Front is +x. The D435i sits at x ~= +0.145.
