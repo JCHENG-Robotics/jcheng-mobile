@@ -6,11 +6,20 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased]
 
+### Fixed
+
+- Costmap `width`/`height` are integers; the MPPI controller's `model_dt`
+  matches the 10 Hz controller period. Found during the 2026-11-25 static
+  bring-up.
+
 ### Added
 
 - `LICENSE-REVIEW.md`: records the pre-existing MIT `LICENSE`, its origin and
   the pending organization review. The file is retained, not removed
   retroactively.
+- Static hardware bring-up evidence (2026-11-25): `/scan` 10 Hz, `/odom` 10 Hz,
+  `/map` 1 Hz, `map -> odom`, Nav2 lifecycle active; no motion.
+  `evidence/20261125_static_bringup/README.md`.
 
 ## [0.1.0] — 2026-11-24
 
