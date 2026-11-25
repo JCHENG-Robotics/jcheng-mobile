@@ -2,7 +2,8 @@
 
 [简体中文](README.zh-CN.md) | **English**
 
-> **STATUS: EXPERIMENTAL / NOT HARDWARE-VALIDATED.** This is the L3 mobile-base
+> **STATUS: EXPERIMENTAL / STATIC BRING-UP PARTIALLY VERIFIED (2026-11-25);
+> motion unverified.** This is the L3 mobile-base
 > capability for the JCHENG ecosystem. It consumes a 2D LiDAR scan, estimates
 > real laser odometry, maps, and publishes chassis intent. It does **not** open
 > devices, drive motors, or fabricate odometry.
@@ -88,10 +89,16 @@ python3 -m pytest -q tests
 - Offline: YAML parse, `py_compile`, `colcon build`, `xacro` expansion, launch
   description generation, and M10 driver parameter cross-check (in the
   predecessor bench package) passed on 2026-11-24.
-- **Not hardware-validated.** The M10 is not connected, Nav2/RTAB-Map are not
-  installed in the robot container, and the mount/footprint values are
-  placeholders. No `/scan`, `/odom`, `/map` or motion claim is currently
-  evidence-backed.
+- **Static bring-up partially verified (2026-11-25, Pi 5 Humble, no motion):**
+  M10 `/scan` 10 Hz, RTAB-Map ICP `/odom` 10 Hz, slam_toolbox `/map` 1 Hz,
+  `map -> odom`, and Nav2 `controller_server` / `planner_server` /
+  `bt_navigator` active. `/cmd_vel` had publishers but no base subscriber; no
+  motor bridge was started.
+- **Motion unverified.** No base or arm motion; no accuracy claim. The LiDAR
+  mount and footprint are still placeholders, and the driver/Nav2 packages live
+  in the stateful robot container.
+- Evidence:
+  [evidence/20261125_static_bringup/README.md](evidence/20261125_static_bringup/README.md).
 
 Full report: [ACCEPTANCE.md](ACCEPTANCE.md).
 

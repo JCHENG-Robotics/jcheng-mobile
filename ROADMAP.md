@@ -1,7 +1,8 @@
 # jcheng-mobile roadmap
 
-> Status: **v0.1.0** as of 2026-11-24. The capability contract and offline
-> stack are complete; hardware validation has not started.
+> Status: **v0.1.0** as of 2026-11-25. The capability contract and offline
+> stack are complete; static hardware bring-up is partially verified; motion
+> has not started.
 
 ## Current state
 
@@ -11,8 +12,9 @@
 | No-hardware boundary scan | Complete | `tests/test_no_hardware.py` |
 | ICP odometry, SLAM and Nav2 configuration | Complete, offline | `ros2_ws/src/jcheng_mobile_bringup/` |
 | Build, xacro and launch description | Complete, offline | 2026-11-24 validation |
-| M10 `/scan` integration | Not started | Robot has no M10 driver in this repository |
+| M10 `/scan` integration | Partially verified (static, 2026-11-25) | `evidence/20261125_static_bringup/README.md` |
 | Mount pose and footprint measurement | Not started | Placeholder values |
+| Static ICP odometry, SLAM and Nav2 | Partially verified (static, 2026-11-25) | `evidence/20261125_static_bringup/README.md` |
 | Navigation on hardware | Not started | — |
 | Motion through `jcheng-system` lease/deadman | Not started | Integration contract documented only |
 
@@ -22,19 +24,19 @@
 |---|---|---|---|---|
 | M0 | Contract-compliant skeleton | Complete (2026-11-24) | Contract and no-hardware tests pass | `tests/` |
 | M1 | Offline build and configuration | Complete (2026-11-24) | `colcon build`, `xacro`, launch description pass | CI `mobile-ci` |
-| M2 | Hardware input validation | Not started | `/scan` at 10 Hz, calibrated mount pose, no duplicate TF | — |
-| M3 | Mapping and localization on hardware | Not started | `/odom` and `/map` update; map matches the room | — |
+| M2 | Hardware input validation | In progress: static `/scan` pass; mount pose pending | `/scan` at 10 Hz, calibrated mount pose, no duplicate TF | `evidence/20261125_static_bringup/README.md` |
+| M3 | Mapping and localization on hardware | In progress: static `/odom` + `/map` pass; motion/drift unverified | `/odom` and `/map` update; map matches the room | `evidence/20261125_static_bringup/README.md` |
 | M4 | Supervised navigation through the system boundary | Not started | Lease, deadman, e-stop and base limits enforced; supervised run | — |
 
 ## Next
 
-1. **M2 — connect the M10 through the system layer.** Measure the LiDAR mount
-   pose (`laser_x/y/z/yaw`) and the chassis footprint, then replace the
-   provisional URDF/Nav2 values. Prerequisites: the system/hardware layer owns
-   the driver and `/scan`.
-2. **M3 — validate odometry and mapping.** Confirm ICP odometry does not drift
-   unbounded in a short supervised run and that `map -> odom -> base_link`
-   stays consistent.
+1. **M2 — finish the hardware input.** `/scan` and the static TF pass; measure
+   the LiDAR mount pose (`laser_x/y/z/yaw`) and the chassis footprint, then
+   replace the provisional URDF/Nav2 values. Prerequisites: the
+   system/hardware layer owns the driver and `/scan`.
+2. **M3 — validate odometry and mapping in motion.** The static graph passes;
+   now confirm ICP odometry does not drift unbounded in a short supervised run
+   and that `map -> odom -> base_link` stays consistent.
 3. **M4 — supervised navigation.** Route `/cmd_vel` through the system lease,
    500 ms deadman and base limits; the physical e-stop remains outside this
    repository.

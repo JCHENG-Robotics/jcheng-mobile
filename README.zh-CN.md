@@ -1,6 +1,6 @@
 # jcheng-mobile
 
-> **状态：实验性 / 未实机验证。** 本仓库是 JCHENG 生态的 L3 移动底盘能力。
+> **状态：实验性 / 静态接入部分验证（2026-11-25）；运动未验证。** 本仓库是 JCHENG 生态的 L3 移动底盘能力。
 > 它消费 2D 激光扫描，估计真实激光里程计、建图并发布底盘意图。它**不**打开设备、
 > 不驱动电机、不伪造里程计。
 > 本文为英文主文档的中文对照；如有歧义，以 [README.md](README.md) 为准。
@@ -79,8 +79,13 @@ python3 -m pytest -q tests
 
 - 离线：YAML 解析、`py_compile`、`colcon build`、`xacro` 展开、launch 描述生成，
   以及 M10 驱动参数交叉检查（在前身台架包中），于 2026-11-24 通过。
-- **未实机验证。** M10 未连接，机器人容器未安装 Nav2/RTAB-Map，安装位姿/底盘
-  轮廓仍是占位值。当前没有 `/scan`、`/odom`、`/map` 或运动的证据支撑。
+- **静态接入部分验证（2026-11-25，Pi 5 Humble，无运动）：** M10 `/scan` 10 Hz、
+  RTAB-Map ICP `/odom` 10 Hz、slam_toolbox `/map` 1 Hz、`map -> odom`，Nav2
+  `controller_server` / `planner_server` / `bt_navigator` 均为 active；
+  `/cmd_vel` 有发布者但没有底盘订阅者，未启动电机桥。
+- **运动未验证。** 没有底盘/机械臂运动，也没有精度结论；LiDAR 安装位与底盘
+  轮廓仍是占位值，驱动/Nav2 包只存在于有状态的机器人容器中。
+- 证据：[evidence/20261125_static_bringup/README.md](evidence/20261125_static_bringup/README.md)。
 
 完整报告：[ACCEPTANCE.md](ACCEPTANCE.md)。
 
