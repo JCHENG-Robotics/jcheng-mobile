@@ -57,7 +57,12 @@ Arguments:
 
 No motor bridge is started. `/jcheng/intent/base` is intent only; the system
 layer applies its own lease, deadman, e-stop and limits. Domain 42 is
-necessary, not a safety proof.
+necessary, not a safety proof. The envelope is provisional and test-only, not
+a `jcheng-interfaces` contract: its `stamp_ns` is the mobile host's
+`time.monotonic_ns()` at receipt, so the system intake can compare it with its
+own monotonic clock only on the same host. The implemented system values are
+200 ms freshness and a 300 ms deadman, both provisional; the domain guard and
+Nav2 remaps are static/unverified on hardware.
 
 ## Tests
 

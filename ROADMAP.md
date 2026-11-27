@@ -38,8 +38,8 @@
    now confirm ICP odometry does not drift unbounded in a short supervised run
    and that `map -> odom -> base_link` stays consistent.
 3. **M4 — supervised navigation.** Route `/jcheng/intent/base` through the
-   system lease, 500 ms deadman and base limits; the physical e-stop remains
-   outside this repository.
+   system lease, system-side deadman (300 ms provisional) and base limits; the
+   physical e-stop remains outside this repository.
 
 ## Out of scope
 

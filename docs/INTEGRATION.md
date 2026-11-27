@@ -6,11 +6,17 @@ The system reads `capability.yaml` at startup. The manifest declares:
 
 - layer L3, `name: jcheng-mobile`, `version: 0.1.0`;
 - `safety.class: motion_source`, `scopes: [base]`, `requires_lease: true`,
-  `max_rate_hz: 20`, `deadman_ms: 500`;
+  `max_rate_hz: 20`, and a manifest deadman bound (an admission bound, not the
+  effective system timeout);
 - `hardware_access: none`;
 - ROS domain 42;
 - publishes `/jcheng/intent/base`, `/odom`, `/map`, `/tf`;
 - subscribes `/scan`, `/tf`.
+
+The manifest deadman value is an upper bound. The implemented system base
+intake uses a **200 ms** freshness window (200 ms old / 50 ms in the future)
+and a **300 ms** lease deadman, both **provisional** and system-side. Neither
+is a measured safety limit.
 
 `hardware_access: none` is a hard boundary. This repository must never open a
 serial/USB/CAN/GPIO device or publish a vendor motor-driver topic. The M10
@@ -37,7 +43,8 @@ motion authority. The manifest comment records this over-claim. Reclassify to
 `mobile_nav.launch.py` sets `ROS_DOMAIN_ID=42` for every child process and
 asserts `domain:=42` before starting any node; any other value aborts the
 launch. The intent node also refuses to publish when its process
-`ROS_DOMAIN_ID` is not 42.
+`ROS_DOMAIN_ID` is not 42. These are static launch properties; they have not
+been verified on hardware (see §8).
 
 **Domain isolation is necessary but not sufficient.** A process on domain 42
 can still publish a malformed or unauthorised intent. The system layer must
@@ -84,13 +91,17 @@ This topology follows the Humble Nav2 1.1.20 `navigation_launch.py` remaps
 `cmd_vel_smoothed -> cmd_vel`; behavior server unmapped). A Nav2 upgrade can
 change it: re-check the launch remaps and the smoother chain before running on
 the robot. The static test pins our strings but cannot detect an upstream
-change.
+change. This is a **static launch property** and is unverified on hardware.
 
-### Provisional envelope
+### Provisional envelope (test-only)
 
-`BaseIntent` is repository-local: the pinned interfaces contract has no such
-message and the v0.3.0 addition is untagged. The JSON form is the only wire
-format for now and must not be treated as an admitted contract. Example:
+`BaseIntent` is repository-local and **test-only**. It is **not** a
+`jcheng-interfaces` contract: no `BaseIntent.msg` is published, and
+`jcheng-interfaces/docs/proposals/base-intent-and-lease-holder.md` is still
+**Proposal only** (2026-11-27). The JSON form is the only wire format and must
+not be treated or deployed as an admitted contract until that proposal is
+accepted and a tagged contract exists. The system-side `jcheng_base` intake is
+also disabled by default and test-only. Example:
 
 ```json
 {
@@ -113,15 +124,29 @@ format for now and must not be treated as an admitted contract. Example:
 | `holder` | Lease holder name; must match the lease |
 | `command_id` | `<lease_id>:<process session>:<seq>`; unique across restarts |
 | `seq` | Strictly increasing per process; a restart resets it |
-| `stamp_ns` | Monotonic receipt time of the Nav2 sample; local to this node |
+| `stamp_ns` | `time.monotonic_ns()` at receipt on the mobile host; same-host only |
 | `frame` | `base_link` |
 | `linear.x` / `linear.y` | Forward/lateral velocity cap in m/s |
 | `angular.z` | Yaw-rate cap in rad/s |
 | `duty_limit` | Normalized duty cap in (0, 0.60] |
 
+### Same-host liveness only
+
+`stamp_ns` is the mobile node's `time.monotonic_ns()` at receipt, not a header,
+wall-clock or cross-host stamp. The system base intake compares it with its own
+`time.monotonic_ns()` at receive time. That comparison is valid **only when the
+mobile node and the system base intake run on the same host**: monotonic clocks
+have unrelated epochs across hosts. A cross-host deployment must not reuse this
+envelope without a shared timebase, which is not implemented.
+
+The implemented system-side values are **200 ms** freshness (200 ms old / 50 ms
+in the future) and a **300 ms** lease deadman. Both are **provisional**; the
+200 ms value is an intake timeout, not a measured stop latency.
+
 QoS is explicit on both ends: **best-effort, keep-last, depth 1**. A lost
-sample is not retransmitted; the 500 ms deadman is the loss response, because a
-retransmitted stale velocity is worse than no velocity.
+sample is not retransmitted; the system's 300 ms deadman (provisional,
+system-side) is the loss response, because a retransmitted stale velocity is
+worse than no velocity.
 
 ## 4. Lease and intent semantics
 
@@ -130,17 +155,20 @@ retransmitted stale velocity is worse than no velocity.
 - `seq` must strictly increase. A duplicate or rollback is rejected and does
   not advance state. `command_id` includes a per-process session so the
   system-side dedup key stays unique after a restart.
-- `stamp_ns` is the monotonic receipt time. A sample older than 500 ms or dated
-  in the future is rejected. Holding the last fresh sample is intentional: the
-  stream stops 500 ms after the input stops. The value is local to this node
-  (monotonic, not a wall clock); the system must use its own arrival timestamp
-  for liveness and must not compare `stamp_ns` across hosts.
+- `stamp_ns` is the mobile node's monotonic receipt time. The node holds the
+  last fresh Nav2 sample and applies a local stale-input pre-filter (the
+  manifest deadman bound); that pre-filter is not the system liveness contract.
+  The system intake compares `stamp_ns` with its own monotonic receive time
+  only on the same host, rejects older than 200 ms (provisional), and applies a
+  300 ms lease deadman (system-side, provisional). A cross-host comparison is
+  invalid because monotonic clocks have unrelated epochs. The mobile pre-filter
+  is looser than the system window and does not widen the system contract.
 - Out-of-limit values are **rejected, not clamped**: `|x| ≤ 0.25 m/s`,
   `|y| ≤ 0.20 m/s`, `|z| ≤ 0.60 rad/s`, `0 < duty_limit ≤ 0.60`, all finite.
   A rejected sample is not published and does not advance `seq`.
 - No lease, stale input, sequence rollback, non-finite values or an
-  out-of-limit sample means **no intent**. The system's 500 ms deadman then
-  produces zero motion.
+  out-of-limit sample means **no intent**. The system's 300 ms deadman
+  (provisional) then produces zero motion.
 - The node must be launched with the lease after the system grants it:
   `lease_id:=<id> holder:=<name>`. Granting is an operator action, not a
   side effect of starting the launch.
@@ -164,7 +192,10 @@ Failure semantics:
 | Max lateral speed | 0.20 m/s (mecanum, re-checked) |
 | Max yaw rate | 0.60 rad/s (re-checked) |
 | Intent rate | ≤20 Hz |
-| Deadman | 500 ms |
+| Manifest deadman bound | admission bound only; not the effective timeout |
+| System base-intake freshness | 200 ms old / 50 ms future (provisional, system-side) |
+| System deadman | 300 ms (provisional, system-side) |
+| Mobile stale-input pre-filter | local implementation detail; not the liveness contract |
 | Duty limit carried in the intent | 0.60 (duty 60 ≈ 0.33 m/s) |
 | Base hardware cap | enforced outside this repo |
 | E-stop | none in this repo; system/hardware layer responsibility |
@@ -195,9 +226,11 @@ capability repository.
    publisher exists**.
 5. After the system grants the lease, start the intent path with
    `lease_id:=<id> holder:=<name>`; verify `/jcheng/intent/base` at ≤20 Hz with
-   an increasing `seq`, a fresh `stamp_ns` and `duty_limit=0.60`.
-6. Stop the Nav2 input or the lease and verify that the intent stream stops
-   within 500 ms; the system must then report zero motion.
+   an increasing `seq`, a `stamp_ns` inside the system's 200 ms same-host
+   window (provisional), and `duty_limit=0.60`.
+6. Stop the Nav2 input or the lease and verify that the system reports zero
+   within its 200 ms intent timeout; the lease deadman is 300 ms (both
+   provisional, system-side).
 7. The system layer consumes intent only after its own lease, deadman and
    e-stop checks. First motion at 0.1 m/s, wheels off the ground for the
    command-path test, then supervised on the floor with the power switch in
@@ -210,7 +243,11 @@ capability repository.
   lease/domain/QoS wiring (50 tests at the time of writing).
 - CI `mobile-gate` requires the contract job and the Humble ROS build.
 - No test in this repository starts DDS, a ROS node or a device; the launch is
-  checked statically. Runtime topic behaviour on domain 42 is **unverified**
-  until a supervised bench run records it.
+  checked statically. Domain-42 enforcement and the Nav2 remap topology are
+  **static-only** and unverified on hardware. Runtime topic behaviour is
+  unverified until a supervised bench run records it.
+- The same-host monotonic liveness path, the 200 ms system freshness window and
+  the 300 ms system deadman are **unverified**; the system values are
+  provisional and not measured safety limits.
 - No hardware claim is valid until `/scan`, `/odom`, `/map` and a supervised
   motion run are recorded with the M10 and a measured mount pose.

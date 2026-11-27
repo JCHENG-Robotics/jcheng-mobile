@@ -12,7 +12,7 @@
 | 层 | L3 能力（`capability.yaml`：`hardware_access: none`） |
 | 输入 | `/scan`（LSLIDAR M10，10 Hz，frame `laser_link`），来自系统/硬件层 |
 | 输出 | `/jcheng/intent/base`（带租约的底盘意图，JSON 信封）、`/odom`（RTAB-Map ICP 激光里程计）、`/map`（slam_toolbox）、`/tf` |
-| 运动授权 | 意图源（在 interfaces v0.3.0 前声明为 `motion_source`），scope `base`，需要租约，500 ms deadman |
+| 运动授权 | 意图源（在 interfaces v0.3.0 前声明为 `motion_source`），scope `base`，需要租约；系统侧新鲜度 200 ms / deadman 300 ms（暂定），liveness 仅限同主机 |
 | 不在范围 | M10 串口/设备驱动、电机桥、急停、轮式里程计（底盘没有编码器） |
 | 禁止 | `/cmd_vel`、电机驱动话题、伪造里程计、`/dev/*`、串口/CAN/GPIO 访问 |
 
@@ -20,6 +20,13 @@
 `/ros_robot_controller/*`，也不打开串口。Nav2 速度被重映射到内部的
 `/jcheng/nav2/cmd_vel`，经 intent 节点校验后再发布到 `/jcheng/intent/base`；
 本仓库绝不发布 `/cmd_vel`。`tests/test_no_hardware.py` 的静态扫描强制执行设备边界。
+
+`/jcheng/intent/base` 是临时、**test-only** 信封，不是 `jcheng-interfaces`
+契约；在 `base-intent-and-lease-holder` 提案被接受并打 tag 之前，它一直只是临时格式。
+其 `stamp_ns` 是移动端主机在接收时的 `time.monotonic_ns()`：系统侧只有与移动端
+**运行在同一主机**时，才能用它自己的单调时钟与之比较。系统侧已实现的值为
+200 ms 新鲜度与 300 ms deadman，均为暂定值；域 42 守卫与 Nav2 重映射仍属静态
+事实、未在硬件上验证。
 
 ## 目录
 
@@ -69,7 +76,8 @@ ros2 launch jcheng_mobile_bringup mobile_nav.launch.py \
 
 launch 不启动电机桥，也不发布 `/cmd_vel`。只有在提供租约且 Nav2 输入新鲜时，
 才会发布 `/jcheng/intent/base`；系统层必须先应用自己的租约、deadman、急停与
-底盘限幅，电机才会动作。域 42 是必要条件，不是安全证明。
+底盘限幅，电机才会动作。域 42 是必要条件，不是安全证明；重映射拓扑仍是静态
+事实，未在硬件上验证。
 
 ## 测试
 

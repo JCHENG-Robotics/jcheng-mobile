@@ -16,7 +16,7 @@
 | Layer | L3 capability (`capability.yaml`: `hardware_access: none`) |
 | Inputs | `/scan` (LSLIDAR M10, 10 Hz, frame `laser_link`) from the system/hardware layer |
 | Outputs | `/jcheng/intent/base` (lease-gated base intent, JSON envelope), `/odom` (RTAB-Map ICP laser odometry), `/map` (slam_toolbox), `/tf` |
-| Motion authority | intent source (declared `motion_source` until interfaces v0.3.0), scope `base`, lease required, 500 ms deadman |
+| Motion authority | intent source (declared `motion_source` until interfaces v0.3.0), scope `base`, lease required; system-side freshness 200 ms / deadman 300 ms (provisional), liveness same-host only |
 | Not in scope | M10 serial/device driver, motor bridge, e-stop, wheel odometry (the base has no encoders) |
 | Forbidden | `/cmd_vel`, motor-driver topics, fake odometry, `/dev/*`, serial/CAN/GPIO access |
 
@@ -26,6 +26,15 @@ repository consumes `/scan` and produces intent; it never publishes
 the internal `/jcheng/nav2/cmd_vel`, validated by the intent node and
 republished on `/jcheng/intent/base`; `/cmd_vel` is never published. The static
 scan in `tests/test_no_hardware.py` enforces the device boundary.
+
+`/jcheng/intent/base` is a provisional, **test-only** envelope, not a
+`jcheng-interfaces` contract; it stays provisional until the
+`base-intent-and-lease-holder` proposal is accepted and tagged. Its `stamp_ns`
+is the mobile host's `time.monotonic_ns()` at receipt: the system intake may
+compare it with its own monotonic clock **only when both run on the same
+host**. The implemented system values are 200 ms freshness and a 300 ms
+deadman, both provisional and system-side; the domain-42 guard and Nav2 remaps
+remain static/unverified on hardware.
 
 ## Layout
 
@@ -79,7 +88,8 @@ If the system layer already publishes `base_link -> laser_link`, pass
 The launch starts no motor bridge and publishes no `/cmd_vel`. It publishes
 `/jcheng/intent/base` only while a lease is supplied and Nav2 input is fresh;
 the system layer must apply its own lease, deadman, e-stop and base limits
-before any motor moves. Domain 42 is necessary but is not a safety proof.
+before any motor moves. Domain 42 is necessary but is not a safety proof, and
+the remap topology is static/unverified on hardware.
 
 ## Tests
 

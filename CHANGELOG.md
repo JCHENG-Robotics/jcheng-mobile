@@ -24,18 +24,25 @@ All notable changes to this project are documented here. Format based on
   isolation is documented as necessary, not as a safety proof.
 - The package description, READMEs and Nav2 params comment now describe the
   intent channel instead of `/cmd_vel`.
+- Corrected the integration liveness contract: `stamp_ns` is a same-host
+  monotonic value, and the system base intake compares it with its own
+  monotonic receive time only when both run on the same host. The implemented
+  system-side values are 200 ms freshness and a 300 ms lease deadman, both
+  provisional; the envelope is documented as test-only pending the
+  `base-intent-and-lease-holder` proposal.
 
 ### Added
 
 - ROS-free `jcheng_mobile_bringup/intent.py`: `Twist` -> `BaseIntent`
-  mapping with lease/holder, `command_id`, strictly increasing `seq`,
-  monotonic freshness (500 ms), speed limits, duty limit and rate bound.
+  mapping with lease/holder, `command_id`, strictly increasing `seq`, a local
+  stale-input pre-filter, speed limits, duty limit and rate bound.
   Rejections return `None` and never advance state.
 - Thin `jcheng_mobile_bringup/intent_node.py`: `lease_id`, `holder`,
   `intent_topic`, `input_topic` and `rate` parameters, explicit
   best-effort/depth-1 QoS, and no publish without a lease or on a domain other
-  than 42. The envelope is a provisional `jcheng.mobile.base_intent.v1` JSON
-  on `std_msgs/String` until jcheng-interfaces publishes a `BaseIntent`.
+  than 42. The envelope is a provisional, test-only
+  `jcheng.mobile.base_intent.v1` JSON on `std_msgs/String`; it is not an
+  interfaces contract until the base-intent proposal is accepted and tagged.
 - Tests for the intent core, the launch domain/remap boundary and the node's
   static lease/domain/QoS wiring.
 - `LICENSE-REVIEW.md`: records the pre-existing MIT `LICENSE`, its origin and

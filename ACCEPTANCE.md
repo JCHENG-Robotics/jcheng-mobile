@@ -13,7 +13,7 @@
 
 | Gate | Command | Level | Result | Evidence |
 |---|---|---|---|---|
-| Contract tests | `python3 -m pytest -q tests` | L0 | pass (10 tests) | `tests/test_contract.py` |
+| Contract tests | `python3 -m pytest -q tests` | L0 | pass (50 tests) | `tests/test_contract.py` |
 | No-hardware scan | `python3 -m pytest -q tests/test_no_hardware.py` | L0 | pass | `tests/test_no_hardware.py` |
 | ROS build | `colcon build --packages-select jcheng_mobile_bringup` | L0 | pass | CI `mobile-ci` |
 | URDF expansion | `xacro .../jcheng_mobile.urdf.xacro` | L0 | pass | CI `mobile-ci` |
@@ -27,7 +27,7 @@
 
 | Claim | Level | Evidence |
 |---|---|---|
-| The manifest declares layer L3, `hardware_access: none`, scope `base`, lease and 500 ms deadman | L0 | `capability.yaml`; `test_contract.py` |
+| The manifest declares layer L3, `hardware_access: none`, scope `base`, lease and a deadman bound; the implemented system-side freshness is 200 ms and the deadman 300 ms, both provisional, and the stamp comparison is same-host only | L0 | `capability.yaml`; `test_contract.py` |
 | The contract hash matches interfaces v0.1.0 | L0 | `test_contract.py` |
 | No device path, serial/CAN/GPIO access, motor topic or fabricated odometry exists in the package | L0 | `test_no_hardware.py` |
 | The package builds and the URDF expands | L0 | CI `mobile-ci` |
@@ -44,6 +44,7 @@
 | `/odom` accuracy and drift | Not measured | Navigation would trust unbounded drift |
 | `/map` correctness | Not measured | An unknown or empty map must be treated as no-go |
 | Lease, deadman and base limits at runtime | No system-layer integration run | `/jcheng/intent/base` is unproven as intent |
+| Same-host liveness (200 ms freshness / 300 ms deadman) | System values are provisional; no integration run | A cross-host deployment would compare unrelated monotonic clocks |
 | Physical e-stop and motor bridge | Outside this repository | No safety-rated stop |
 
 ## 4. Limitations

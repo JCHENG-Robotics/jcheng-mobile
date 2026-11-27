@@ -22,6 +22,9 @@ safety:
   scopes: [base]
   requires_lease: true
   max_rate_hz: 20
+  # Admitted upper bound, not the effective timeout. The implemented system
+  # base intake uses a 200 ms freshness window and a 300 ms lease deadman
+  # (provisional, system-side); the envelope stamp is same-host monotonic only.
   deadman_ms: 500
 hardware_access: none
 runtime:
@@ -30,8 +33,10 @@ runtime:
   # proof.
   ros_domains: [42]
   publishes:
-    # Provisional JSON envelope, schema jcheng.mobile.base_intent.v1, until
-    # jcheng-interfaces publishes a BaseIntent message. It is not an admitted
+    # Provisional, test-only JSON envelope, schema
+    # jcheng.mobile.base_intent.v1, until the
+    # jcheng-interfaces/docs/proposals/base-intent-and-lease-holder.md proposal
+    # is accepted and a tagged BaseIntent exists. It is not an admitted
     # cross-repository contract yet.
     - /jcheng/intent/base
     - /odom
