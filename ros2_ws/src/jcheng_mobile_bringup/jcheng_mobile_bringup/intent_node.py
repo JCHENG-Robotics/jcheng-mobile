@@ -16,8 +16,8 @@ Safety rules:
   isolation is not an authorization or safety mechanism by itself: the system
   layer must still validate every envelope.
 * QoS is explicit: best-effort, keep-last depth 1 on both ends. Loss is
-  handled by the system's 500 ms deadman, not by retransmitting stale
-  velocities.
+  handled by the system's 200 ms freshness window / 300 ms deadman (both
+  provisional), not by retransmitting stale velocities.
 """
 
 from __future__ import annotations
