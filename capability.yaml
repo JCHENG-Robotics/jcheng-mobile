@@ -1,7 +1,9 @@
 # Capability manifest for the organization's admission check.
 # jcheng-mobile is an L3 capability: it consumes /scan and publishes real
-# laser odometry, map and chassis intent. It never opens a device, drives a
-# motor, or fabricates odometry.
+# laser odometry, map and bounded chassis *intent*. It never opens a device,
+# drives a motor, fabricates odometry, or publishes Nav2's raw velocity topic.
+# Nav2 velocity is remapped to an internal scoped topic and validated by the
+# intent node before /jcheng/intent/base is published.
 schema_version: 1
 name: jcheng-mobile
 version: 0.1.0
@@ -10,16 +12,33 @@ contract:
   contract_hash: "sha256:afca22a42f7163e0351d185d5a8577b0b51f2f3da4b92278f161a4a7d2c35b1c"
   system_api: ">=0.1,<0.2"
 safety:
+  # The pinned contract (interfaces v0.2.0, hash afca22…) has no
+  # `intent_source` class. jcheng-interfaces main adds it for an untagged
+  # v0.3.0; until that tag is released and the pin moves, this manifest keeps
+  # `motion_source`, but must be read as *intent only*: no ExecuteMotion, no
+  # device, no motor, no motion authority. Reclassify to `intent_source` when
+  # v0.3.0 is released and the ecosystem lock is updated.
   class: motion_source
   scopes: [base]
   requires_lease: true
   max_rate_hz: 20
+  # Admitted upper bound, not the effective timeout. The implemented system
+  # base intake uses a 200 ms freshness window and a 300 ms lease deadman
+  # (provisional, system-side); the envelope stamp is same-host monotonic only.
   deadman_ms: 500
 hardware_access: none
 runtime:
+  # Domain 42 is necessary but not sufficient. The system layer applies the
+  # lease, deadman, limits and stop latch; domain isolation is not a safety
+  # proof.
   ros_domains: [42]
   publishes:
-    - /cmd_vel
+    # Provisional, test-only JSON envelope, schema
+    # jcheng.mobile.base_intent.v1, until the
+    # jcheng-interfaces/docs/proposals/base-intent-and-lease-holder.md proposal
+    # is accepted and a tagged BaseIntent exists. It is not an admitted
+    # cross-repository contract yet.
+    - /jcheng/intent/base
     - /odom
     - /map
     - /tf

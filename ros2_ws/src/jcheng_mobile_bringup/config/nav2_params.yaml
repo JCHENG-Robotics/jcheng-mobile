@@ -1,9 +1,11 @@
 # Draft Nav2 parameters for jcheng-mobile (ArmPi Ultra base).
 #
 # STATUS: DRAFT / NOT HARDWARE-VALIDATED.
-# - This repository publishes /cmd_vel as chassis intent. The system/hardware
-#   layer owns the M10 serial driver, the motor bridge and the e-stop; no motor
-#   driver or fake odometry lives here.
+# - Nav2 velocity is remapped off /cmd_vel. The launch wraps this include in a
+#   scoped remap group (`/jcheng/nav2/cmd_vel`) and the intent node republishes
+#   a lease-gated /jcheng/intent/base envelope. The system/hardware layer owns
+#   the M10 serial driver, the motor bridge and the e-stop; no motor driver or
+#   fake odometry lives here.
 # - Wheelbase 0.195 m, track 0.22 m, wheel diameter 0.0965 m are the vendor
 #   chassis-controller defaults, not independently tape-measured values.
 # - The footprint below and the LiDAR mount are PROVISIONAL. Measure the

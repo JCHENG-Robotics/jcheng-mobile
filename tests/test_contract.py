@@ -58,11 +58,23 @@ def test_hardware_access_is_none():
 def test_runtime_surface():
     runtime = MANIFEST["runtime"]
     assert runtime["ros_domains"] == [42]
-    assert set(runtime["publishes"]) == {"/cmd_vel", "/odom", "/map", "/tf"}
+    assert set(runtime["publishes"]) == {
+        "/jcheng/intent/base", "/odom", "/map", "/tf"}
     assert set(runtime["subscribes"]) == {"/scan", "/tf"}
-    forbidden = ("/ros_robot_controller", "set_motor_speeds", "/dev/")
+    forbidden = (
+        "/ros_robot_controller",
+        "set_motor_speeds",
+        "/dev/",
+        "/cmd_vel",
+    )
     for topic in runtime["publishes"] + runtime["subscribes"]:
         assert not any(token in topic for token in forbidden)
+
+
+def test_manifest_does_not_publish_the_raw_velocity_topic():
+    text = (ROOT / "capability.yaml").read_text(encoding="utf-8")
+    assert "/cmd_vel" not in text
+    assert "/jcheng/intent/base" in text
 
 
 def test_package_matches_manifest():
