@@ -11,14 +11,15 @@
 |---|---|
 | 层 | L3 能力（`capability.yaml`：`hardware_access: none`） |
 | 输入 | `/scan`（LSLIDAR M10，10 Hz，frame `laser_link`），来自系统/硬件层 |
-| 输出 | `/odom`（RTAB-Map ICP 激光里程计）、`/map`（slam_toolbox）、`/tf`、`/cmd_vel` 底盘意图 |
-| 运动授权 | `motion_source`，scope `base`，需要租约，500 ms deadman |
+| 输出 | `/jcheng/intent/base`（带租约的底盘意图，JSON 信封）、`/odom`（RTAB-Map ICP 激光里程计）、`/map`（slam_toolbox）、`/tf` |
+| 运动授权 | 意图源（在 interfaces v0.3.0 前声明为 `motion_source`），scope `base`，需要租约，500 ms deadman |
 | 不在范围 | M10 串口/设备驱动、电机桥、急停、轮式里程计（底盘没有编码器） |
-| 禁止 | 电机驱动话题、伪造里程计、`/dev/*`、串口/CAN/GPIO 访问 |
+| 禁止 | `/cmd_vel`、电机驱动话题、伪造里程计、`/dev/*`、串口/CAN/GPIO 访问 |
 
 系统/硬件层拥有 M10 驱动与电机桥。本仓库消费 `/scan` 并产生意图；它绝不发布
-`/ros_robot_controller/*`，也不打开串口。`tests/test_no_hardware.py` 的静态扫描
-强制执行这条边界。
+`/ros_robot_controller/*`，也不打开串口。Nav2 速度被重映射到内部的
+`/jcheng/nav2/cmd_vel`，经 intent 节点校验后再发布到 `/jcheng/intent/base`；
+本仓库绝不发布 `/cmd_vel`。`tests/test_no_hardware.py` 的静态扫描强制执行设备边界。
 
 ## 目录
 
@@ -28,6 +29,9 @@ jcheng-mobile/
 ├── docs/INTEGRATION.md             # 发现、租约、话题、失败语义
 ├── tests/test_contract.py          # 清单契约检查
 ├── tests/test_no_hardware.py       # 静态无硬件扫描
+├── tests/test_launch.py            # 固定域与 Nav2 重映射检查
+├── tests/test_intent.py            # ROS-free 意图映射/校验
+├── tests/test_intent_node.py       # 节点租约/域/QoS 静态检查
 ├── VERSION
 ├── CHANGELOG.md
 ├── LICENSE
@@ -55,14 +59,17 @@ colcon build --base-paths ros2_ws/src --packages-select jcheng_mobile_bringup
 source install/setup.bash
 
 ros2 launch jcheng_mobile_bringup mobile_nav.launch.py \
-  laser_x:=0.12 laser_y:=0.0 laser_z:=0.03 laser_yaw:=0.0
+  laser_x:=0.12 laser_y:=0.0 laser_z:=0.03 laser_yaw:=0.0 \
+  lease_id:=<系统授予的租约> holder:=jcheng-mobile
 ```
 
 如果系统层已经发布 `base_link -> laser_link`，传入 `publish_laser_tf:=false`
 以避免重复 TF。分阶段检查可用 `start_slam:=false` 或 `start_nav2:=false`。
+`domain` 固定为 42：launch 会设置 `ROS_DOMAIN_ID=42`，其他取值直接中止。
 
-launch 不启动电机桥。`/cmd_vel` 是底盘意图；系统层必须先应用租约、deadman、
-急停与底盘限幅，电机才会动作。
+launch 不启动电机桥，也不发布 `/cmd_vel`。只有在提供租约且 Nav2 输入新鲜时，
+才会发布 `/jcheng/intent/base`；系统层必须先应用自己的租约、deadman、急停与
+底盘限幅，电机才会动作。域 42 是必要条件，不是安全证明。
 
 ## 测试
 
@@ -71,9 +78,12 @@ python3 -m pytest -q tests
 ```
 
 - `test_contract.py` 校验能力清单字段、契约哈希形状、scope/lease/deadman、
-  域 42 与话题表面。
+  域 42 与话题表面（不含 `/cmd_vel`）。
 - `test_no_hardware.py` 拒绝设备路径、串口/CAN/GPIO 访问、电机驱动话题、
   厂商麦克纳姆节点与台架开环里程计。
+- `test_launch.py` 固定域守卫与 Nav2 重映射范围。
+- `test_intent.py` 覆盖映射、限速、时间戳新鲜度、序号与租约拒绝（无 ROS）。
+- `test_intent_node.py` 静态检查节点的租约/域/QoS 接线。
 
 ## 验证状态
 
@@ -82,7 +92,8 @@ python3 -m pytest -q tests
 - **静态接入部分验证（2026-11-25，Pi 5 Humble，无运动）：** M10 `/scan` 10 Hz、
   RTAB-Map ICP `/odom` 10 Hz、slam_toolbox `/map` 1 Hz、`map -> odom`，Nav2
   `controller_server` / `planner_server` / `bt_navigator` 均为 active；
-  `/cmd_vel` 有发布者但没有底盘订阅者，未启动电机桥。
+  当时 `/cmd_vel` 有发布者但没有底盘订阅者。2026-11-27 的 intent 改造移除了
+  该表面，但尚未在机器上重新验证。
 - **运动未验证。** 没有底盘/机械臂运动，也没有精度结论；LiDAR 安装位与底盘
   轮廓仍是占位值，驱动/Nav2 包只存在于有状态的机器人容器中。
 - 证据：[evidence/20261125_static_bringup/README.md](evidence/20261125_static_bringup/README.md)。

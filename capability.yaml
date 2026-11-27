@@ -1,7 +1,9 @@
 # Capability manifest for the organization's admission check.
 # jcheng-mobile is an L3 capability: it consumes /scan and publishes real
-# laser odometry, map and chassis intent. It never opens a device, drives a
-# motor, or fabricates odometry.
+# laser odometry, map and bounded chassis *intent*. It never opens a device,
+# drives a motor, fabricates odometry, or publishes Nav2's raw velocity topic.
+# Nav2 velocity is remapped to an internal scoped topic and validated by the
+# intent node before /jcheng/intent/base is published.
 schema_version: 1
 name: jcheng-mobile
 version: 0.1.0
@@ -10,6 +12,12 @@ contract:
   contract_hash: "sha256:0b8d72ced7f54d444d6851d8b99a51a78e2bed3f687324f51a15f76557f24b42"
   system_api: ">=0.1,<0.2"
 safety:
+  # The pinned contract (interfaces hash 0b8d72…, `interfaces: ">=0.1,<0.2"`)
+  # has no `intent_source` class. jcheng-interfaces main adds it for an
+  # untagged v0.3.0; until that tag is released and the pin moves, this
+  # manifest keeps `motion_source`, but must be read as *intent only*: no
+  # ExecuteMotion, no device, no motor, no motion authority. Reclassify to
+  # `intent_source` when v0.3.0 is released and the ecosystem lock is updated.
   class: motion_source
   scopes: [base]
   requires_lease: true
@@ -17,9 +25,15 @@ safety:
   deadman_ms: 500
 hardware_access: none
 runtime:
+  # Domain 42 is necessary but not sufficient. The system layer applies the
+  # lease, deadman, limits and stop latch; domain isolation is not a safety
+  # proof.
   ros_domains: [42]
   publishes:
-    - /cmd_vel
+    # Provisional JSON envelope, schema jcheng.mobile.base_intent.v1, until
+    # jcheng-interfaces publishes a BaseIntent message. It is not an admitted
+    # cross-repository contract yet.
+    - /jcheng/intent/base
     - /odom
     - /map
     - /tf

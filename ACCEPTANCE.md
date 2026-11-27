@@ -40,10 +40,10 @@
 | Item | Reason | Risk |
 |---|---|---|
 | Mount pose and footprint | Values are placeholders (`laser_x=0.12`, `y=0`, `z=0.03`, `yaw=0`) | Odometry, costmaps and TF are wrong before measurement |
-| Motion, navigation and drift | Static only; no motion or accuracy run | `/cmd_vel` intent and localization are unproven in motion |
+| Motion, navigation and drift | Static only; no motion or accuracy run | `/jcheng/intent/base` intent and localization are unproven in motion |
 | `/odom` accuracy and drift | Not measured | Navigation would trust unbounded drift |
 | `/map` correctness | Not measured | An unknown or empty map must be treated as no-go |
-| Lease, deadman and base limits at runtime | No system-layer integration run | `/cmd_vel` is unproven as intent |
+| Lease, deadman and base limits at runtime | No system-layer integration run | `/jcheng/intent/base` is unproven as intent |
 | Physical e-stop and motor bridge | Outside this repository | No safety-rated stop |
 
 ## 4. Limitations
