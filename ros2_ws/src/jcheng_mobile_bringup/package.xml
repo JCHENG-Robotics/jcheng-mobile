@@ -5,15 +5,20 @@
   <version>0.1.0</version>
   <description>
     Contract-compliant mobile-base bringup: consumes /scan, publishes real
-    laser odometry, map and /cmd_vel chassis intent. No hardware access, no
-    motor driver and no fake odometry.
+    laser odometry, map and a lease-gated /jcheng/intent/base envelope. Nav2
+    velocity is remapped off /cmd_vel. No hardware access, no motor driver and
+    no fake odometry.
   </description>
   <maintainer email="maintainer@example.invalid">ubuntu</maintainer>
   <license>MIT</license>
 
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>rclpy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>xacro</exec_depend>
 
