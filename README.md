@@ -1,13 +1,13 @@
 # jcheng-mobile
 
-[简体中文](README.zh-CN.md) | **English**
+**English** | [简体中文](README.zh-CN.md)
 
 > **STATUS: EXPERIMENTAL / STATIC BRING-UP PARTIALLY VERIFIED (2026-11-25);
 > motion unverified.** This is the L3 mobile-base
 > capability for the JCHENG ecosystem. It consumes a 2D LiDAR scan, estimates
 > real laser odometry, maps, and publishes chassis intent. It does **not** open
 > devices, drive motors, or fabricate odometry.
-> English canonical; see [README.zh-CN.md](README.zh-CN.md) for the Chinese translation.
+> English canonical; the Chinese README is a translation.
 
 ## Scope and boundary
 

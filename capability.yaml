@@ -8,16 +8,16 @@ schema_version: 1
 name: jcheng-mobile
 version: 0.1.0
 contract:
-  interfaces: ">=0.1,<0.2"
-  contract_hash: "sha256:0b8d72ced7f54d444d6851d8b99a51a78e2bed3f687324f51a15f76557f24b42"
+  interfaces: ">=0.2,<0.3"
+  contract_hash: "sha256:afca22a42f7163e0351d185d5a8577b0b51f2f3da4b92278f161a4a7d2c35b1c"
   system_api: ">=0.1,<0.2"
 safety:
-  # The pinned contract (interfaces hash 0b8d72…, `interfaces: ">=0.1,<0.2"`)
-  # has no `intent_source` class. jcheng-interfaces main adds it for an
-  # untagged v0.3.0; until that tag is released and the pin moves, this
-  # manifest keeps `motion_source`, but must be read as *intent only*: no
-  # ExecuteMotion, no device, no motor, no motion authority. Reclassify to
-  # `intent_source` when v0.3.0 is released and the ecosystem lock is updated.
+  # The pinned contract (interfaces v0.2.0, hash afca22…) has no
+  # `intent_source` class. jcheng-interfaces main adds it for an untagged
+  # v0.3.0; until that tag is released and the pin moves, this manifest keeps
+  # `motion_source`, but must be read as *intent only*: no ExecuteMotion, no
+  # device, no motor, no motion authority. Reclassify to `intent_source` when
+  # v0.3.0 is released and the ecosystem lock is updated.
   class: motion_source
   scopes: [base]
   requires_lease: true

@@ -28,7 +28,7 @@
 | Claim | Level | Evidence |
 |---|---|---|
 | The manifest declares layer L3, `hardware_access: none`, scope `base`, lease and a deadman bound; the implemented system-side freshness is 200 ms and the deadman 300 ms, both provisional, and the stamp comparison is same-host only | L0 | `capability.yaml`; `test_contract.py` |
-| The contract hash matches interfaces v0.1.0 | L0 | `test_contract.py` |
+| The contract hash matches interfaces v0.2.0 | L0 | `test_contract.py` |
 | No device path, serial/CAN/GPIO access, motor topic or fabricated odometry exists in the package | L0 | `test_no_hardware.py` |
 | The package builds and the URDF expands | L0 | CI `mobile-ci` |
 | The launch description starts no motor bridge | L0 | `mobile_nav.launch.py` review; no vendor publisher |
