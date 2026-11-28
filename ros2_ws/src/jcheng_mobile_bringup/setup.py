@@ -23,5 +23,9 @@ setup(
     description='Contract-compliant mobile-base bringup (scan in, intent out)',
     license='MIT',
     tests_require=['pytest'],
-    entry_points={'console_scripts': []},
+    entry_points={
+        'console_scripts': [
+            'intent_node = jcheng_mobile_bringup.intent_node:main',
+        ],
+    },
 )
