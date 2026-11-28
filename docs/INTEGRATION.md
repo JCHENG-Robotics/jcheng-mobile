@@ -241,7 +241,8 @@ capability repository.
 - `python3 -m pytest -q tests` covers the contract, no-hardware scan, launch
   remaps/domain guard, the ROS-free intent guard and the node's static
   lease/domain/QoS wiring (50 tests at the time of writing).
-- CI `mobile-gate` requires the contract job and the Humble ROS build.
+- CI `mobile-gate` requires the contract job, the Jazzy host build and the
+  Humble robot-target build.
 - No test in this repository starts DDS, a ROS node or a device; the launch is
   checked statically. Domain-42 enforcement and the Nav2 remap topology are
   **static-only** and unverified on hardware. Runtime topic behaviour is

@@ -8,6 +8,10 @@ All notable changes to this project are documented here. Format based on
 
 ### Changed
 
+- CI now runs a Jazzy host build alongside the Humble robot-target build, and
+  the contract tests run on Python 3.10 and 3.12. The Pi 5 target remains
+  Humble, so the Nav2 parameter set is still the Humble 1.1.20 set; Jazzy Nav2
+  parameters are unverified.
 - Nav2 no longer publishes `/cmd_vel`. `mobile_nav.launch.py` wraps the Nav2
   include in a scoped remap group: `controller_server:cmd_vel` and
   `velocity_smoother:cmd_vel` keep the `cmd_vel_nav` hop,
