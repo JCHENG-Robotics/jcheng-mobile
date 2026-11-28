@@ -60,7 +60,9 @@ jcheng-mobile/
 
 ## Requirements
 
-- ROS 2 Humble.
+- Runtime target: ROS 2 Humble (ArmPi Ultra Pi 5 vendor container). Host
+  builds and CI also validate on ROS 2 Jazzy; the Jazzy Nav2 parameter set has
+  not been validated on hardware yet.
 - `ros-humble-nav2-bringup`, `ros-humble-nav2-mppi-controller`,
   `ros-humble-slam-toolbox`, `ros-humble-rtabmap-odom` installed in the target
   environment.

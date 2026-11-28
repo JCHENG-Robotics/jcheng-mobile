@@ -54,7 +54,8 @@ jcheng-mobile/
 
 ## 依赖
 
-- ROS 2 Humble。
+- 运行目标：ROS 2 Humble（ArmPi Ultra Pi 5 厂商容器）。主机构建与 CI 同时
+  验证 ROS 2 Jazzy；Jazzy Nav2 参数集尚未在实机验证。
 - 目标环境安装 `ros-humble-nav2-bringup`、`ros-humble-nav2-mppi-controller`、
   `ros-humble-slam-toolbox`、`ros-humble-rtabmap-odom`。
 - 由系统/硬件层拥有的 `/scan` 发布者。M10 驱动不属于本仓库。

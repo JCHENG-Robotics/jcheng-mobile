@@ -37,7 +37,8 @@ precedent for adding `LICENSE` files elsewhere while the review is open.
 
 | Dependency | Use | Known/probable license | Risk |
 |---|---|---|---|
-| ROS 2 Humble | Runtime | Apache-2.0 | Low; keep notices |
+| ROS 2 Humble | Runtime (robot target) | Apache-2.0 | Low; keep notices |
+| ROS 2 Jazzy | Host build/CI | Apache-2.0 | Low; keep notices |
 | Nav2 (`nav2_bringup`, `nav2_mppi_controller`) | Navigation | Apache-2.0 / BSD-3-Clause | Low |
 | slam_toolbox | Mapping | BSD-3-Clause | Low |
 | RTAB-Map (`rtabmap_odom`) | ICP odometry | BSD-3-Clause | Low |
